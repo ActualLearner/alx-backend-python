@@ -1,11 +1,6 @@
 import mysql.connector
 import os
 
-DB_USER = os.getenv('DB_USER', 'your_mysql_user')
-DB_PASS = os.getenv('DB_PASS', 'your_mysql_password')
-DB_HOST = os.getenv('DB_HOST', 'localhost')
-DB_NAME = 'ALX_prodev'
-
 class DatabaseConnection():
 
     def __init__(self):
@@ -31,3 +26,8 @@ class DatabaseConnection():
         except Exception as e:
             print(f"Exeption occured on closing: {e}")
         return False
+    
+with DatabaseConnection() as conn:
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users')
+    print(cursor.fetchall())
