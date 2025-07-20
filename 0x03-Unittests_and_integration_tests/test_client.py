@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Unit tests for the functions defined in the client module.
+"""Unit tests for the GithubOrgClient class in the client module.
 
-This test suite verifies the correctness of:
-- org
-- get_json
-- memoize
+This test suite verifies the behavior of GithubOrgClient.org method,
+ensuring that it uses get_json properly and returns the expected data.
 """
+
 import unittest
 from client import GithubOrgClient
 from parameterized import parameterized
@@ -14,22 +13,23 @@ from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
-    """Integration test for the GithubOrgClient class"""
+    """Test cases for GithubOrgClient."""
 
     @parameterized.expand([
-        ('google'),
-        ('abc'),
+        ("google",),
+        ("abc",),
     ])
-    @patch('utils.get_json')
-    def test_org(self, name, mock_get_json):
-
+    @patch('client.get_json')
+    def test_org(self, org_name, mock_get_json):
+        """
+        Test that GithubOrgClient.org returns the correct payload
+        and that get_json is called with the expected URL.
+        """
         mock_get_json.return_value = TEST_PAYLOAD
 
-        client = GithubOrgClient(name)
-
+        client = GithubOrgClient(org_name)
         result = client.org()
 
-        expected_url = "https://api.github.com/orgs/google"
+        expected_url = f"https://api.github.com/orgs/{org_name}"
         mock_get_json.assert_called_once_with(expected_url)
-
         self.assertEqual(result, TEST_PAYLOAD)
