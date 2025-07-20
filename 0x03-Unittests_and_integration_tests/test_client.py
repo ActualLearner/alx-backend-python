@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Unit tests for the GithubOrgClient class in the client module.
-
 This test suite verifies the behavior of GithubOrgClient.org method,
 ensuring that it uses get_json properly and returns the expected data.
 """
-
 import unittest
 from client import GithubOrgClient
 from parameterized import parameterized
