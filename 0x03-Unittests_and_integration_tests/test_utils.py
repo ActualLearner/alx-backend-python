@@ -14,7 +14,7 @@ from typing import (
 
 
 class TestAccessNestedMap(unittest.TestCase):
-    """Unit tests for utils.access_nested_map"""
+    """Test cases for the access_nested_map function."""
 
     @parameterized.expand([
         ({'a': 1}, ("a",), 1),
@@ -22,7 +22,8 @@ class TestAccessNestedMap(unittest.TestCase):
         ({'a': {'b': 2}}, ('a', 'b'), 2)]
     )
     def test_access_nested_map(self, nested_map, path, expected):
-        """Test access_nested_map function"""
+        """Test that access_nested_map returns the 
+        correct value for valid paths."""
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand([
@@ -30,13 +31,15 @@ class TestAccessNestedMap(unittest.TestCase):
         ({"a": 1}, ("a", "b")),
     ])
     def test_access_nested_map_exception(self, nested_map, path):
-        """Test that KeyError is raised with the expected message."""
+        """Test that access_nested_map raises a KeyError
+        for invalid paths."""
         with self.assertRaises(KeyError):
             access_nested_map(nested_map, path)
 
 
 class TestGetJson(unittest.TestCase):
-    """Unit tests for get_json."""
+    """Test cases for the get_json function,
+    with mocked HTTP requests."""
 
     @parameterized.expand([
         ("http://example.com", {"payload": True}),
@@ -44,7 +47,10 @@ class TestGetJson(unittest.TestCase):
     ])
     @patch('utils.requests.get')
     def test_get_json(self, test_url, test_payload, mock_get):
-        """Test get_json"""
+        """
+        Test that get_json returns the expected dictionary and that
+        requests.get is called exactly once with the correct URL.
+        """
         mock_response = Mock()
         mock_response.json.return_value = test_payload
         mock_get.return_value = mock_response
@@ -56,16 +62,21 @@ class TestGetJson(unittest.TestCase):
 
 
 class TestMemoize(unittest.TestCase):
-    """Test memoize function"""
+    """Test cases for the memoize decorator."""
     def test_memoize(self) -> None:
-
+    """Test that memoize caches the result
+    of a method after the first call."""
         class TestClass:
-
+            """Simple test class with a method and 
+            a memoized property."""
             def a_method(self):
+                """Return a fixed integer value."""
                 return 42
 
             @memoize
             def a_property(self):
+                """Return the result of a_method, but cache it
+                after the first call."""
                 return self.a_method()
 
         with patch.object(TestClass, 'a_method') as mock_method:
