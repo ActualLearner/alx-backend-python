@@ -4,10 +4,9 @@ This test suite verifies the behavior of GithubOrgClient.org method,
 ensuring that it uses get_json properly and returns the expected data.
 """
 import unittest
-from unittest.mock import patch, PropertyMock
-from parameterized import parameterized, parameterized_class
+from unittest.mock import patch
+from parameterized import parameterized
 from client import GithubOrgClient
-from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
