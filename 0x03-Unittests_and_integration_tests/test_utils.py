@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""Unit tests for the functions defined in the utils module.
+
+This test suite verifies the correctness of:
+- access_nested_map
+- get_json
+- memoize
+"""
 import unittest
 from parameterized import parameterized
 from unittest.mock import patch, Mock
