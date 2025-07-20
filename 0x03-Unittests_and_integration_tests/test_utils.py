@@ -22,7 +22,7 @@ class TestAccessNestedMap(unittest.TestCase):
         ({'a': {'b': 2}}, ('a', 'b'), 2)]
     )
     def test_access_nested_map(self, nested_map, path, expected):
-        """Test that access_nested_map returns the 
+        """Test that access_nested_map returns the
         correct value for valid paths."""
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
@@ -67,7 +67,7 @@ class TestMemoize(unittest.TestCase):
         """Test that memoize caches the result
         of a method after the first call."""
         class TestClass:
-            """Simple test class with a method and 
+            """Simple test class with a method and
             a memoized property."""
             def a_method(self):
                 """Return a fixed integer value."""
@@ -88,5 +88,4 @@ class TestMemoize(unittest.TestCase):
             self.assertEqual(result1, 42)
             self.assertEqual(result2, 42)
             mock_method.assert_called_once()
-
 
