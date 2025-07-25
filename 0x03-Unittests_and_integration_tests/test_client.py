@@ -25,5 +25,7 @@ class TestGithubOrgClient(unittest.TestCase):
         client = GithubOrgClient(org_name)
         result = client.org
 
-        self.assertEqual(result, test_payload)
-        mock_get_json.assert_called_once()
+        self.assertEqual(result, expected_result)
+        mock_get_json.assert_called_once_with(
+            f"https://api.github.com/orgs/{org_name}"
+        )
