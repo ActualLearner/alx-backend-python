@@ -72,16 +72,32 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertTrue(result)
 
 
-@parameterized_class(TEST_PAYLOAD)
+@parameterized_class([
+    {
+        "org_payload": TEST_PAYLOAD[0][0],
+        "repos_payload": TEST_PAYLOAD[0][1],
+        "expected_repos": TEST_PAYLOAD[0][2],
+        "apache2_repos": TEST_PAYLOAD[0][3],
+    }
+])
 class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.get_patcher = patch("requests.get")
         cls.mock_get = cls.get_patcher.start()
-        mock_response = Mock()
-        mock_response.json.side_effect = list(TEST_PAYLOAD[0])
-        cls.mock_get.return_value = mock_response
+
+        def side_effect(url):
+            if url.endswith("/orgs/google"):
+                mock_response = Mock()
+                mock_response.json.return_value = TEST_PAYLOAD[0][0]
+                return mock_response
+            elif url.endswith("/orgs/google/repos"):
+                mock_response = Mock()
+                mock_response.json.return_value = TEST_PAYLOAD[0][1]
+                return mock_response
+
+        cls.mock_get.side_effect = side_effect
 
     @classmethod
     def tearDownClass(cls):
