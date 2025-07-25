@@ -3,7 +3,7 @@
 import unittest
 from client import GithubOrgClient
 from parameterized import parameterized
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, PropertyMock
 from fixtures import TEST_PAYLOAD
 
 
@@ -30,15 +30,31 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(result, test_payload)
         mock_get_json.reset_mock()
 
-    @patch('client.get_json')
-    def test_public_repos_url(self, mock_get_json: Mock):
+    def test_public_repos_url(self, mock_org):
         """Test the GithubOrgClient.public_repos_url method."""
-        mock_get_json.return_value = {"json": "google"}
         payload = {"login": "google"}
         with patch("client.GithubOrgClient.org") as mock_org:
             mock_org.return_value = payload
             client = GithubOrgClient('google')
             result = client._public_repos_url()
             self.assertEqual(result, payload)
-            mock_get_json.assert_called_once()
-            mock_org.assert_called_once()
+
+    @patch("client.get_json")
+    def test_public_repos(self, mock_get_json):
+        """Test GithubOrgClient.public_repos method"""
+        payload = [{"name": "repo1"}, {"name": "repo2"}]
+        mock_get_json.return_value = payload
+
+        name = "_public_repos_url"
+        with patch.object(
+                GithubOrgClient,
+                name,
+                new_callable=PropertyMock) as mock_public_repos_url:
+            client = GithubOrgClient("google")
+            mock_public_repos_url.return_value = "https"
+
+            result = client.public_repos()
+
+            self.assertEqual(result, payload)
+            mock_get_json.assert_called_once_with("https")
+            mock_public_repos_url.assert_called_once()
