@@ -121,4 +121,4 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
         result = client.public_repos(license="apache-2.0")
 
-        self.assertEqual(result, TEST_PAYLOAD[0][2])
+        self.assertEqual(result, TEST_PAYLOAD[0][3])
