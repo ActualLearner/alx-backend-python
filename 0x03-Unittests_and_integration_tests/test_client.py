@@ -22,16 +22,12 @@ class TestGithubOrgClient(unittest.TestCase):
         Test that GithubOrgClient.org returns the correct payload
         and that get_json is called with the expected URL.
         """
-        test_payload = {
-            "name": org_name,
-            "repos_url": f"https://api.github.com/orgs/{org_name}/repos"
-        }
+        test_payload = {"login": org_name}
         mock_get_json.return_value = test_payload
 
         client = GithubOrgClient(org_name)
         result = client.org
 
-        expected_url = f"https://api.github.com/orgs/{org_name}"
-        mock_get_json.assert_called_once_with(expected_url)
+        mock_get_json.assert_called_once_with(f"https://api.github.com/orgs/{org_name}")
         self.assertEqual(result, test_payload)
         mock_get_json.reset_mock()
