@@ -2,7 +2,7 @@
 """Unit tests for the GithubOrgClient class"""
 import unittest
 from client import GithubOrgClient
-from parameterized import parameterized
+from parameterized import parameterized, parameterized_class
 from unittest.mock import patch, Mock, PropertyMock
 from fixtures import TEST_PAYLOAD
 
@@ -70,3 +70,19 @@ class TestGithubOrgClient(unittest.TestCase):
     def test_has_license(self, license, license_key):
         result = GithubOrgClient.has_license(license, license_key)
         self.assertTrue(result)
+
+
+@parameterized_class(TEST_PAYLOAD)
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.get_patcher = patch("requests.get")
+        cls.mock_get = cls.get_patcher.start()
+        mock_response = Mock()
+        mock_response.json.side_effect = list(TEST_PAYLOAD[0])
+        cls.mock_get.return_value = mock_response
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.get_patcher.stop()
