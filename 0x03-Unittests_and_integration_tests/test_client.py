@@ -68,6 +68,7 @@ class TestGithubOrgClient(unittest.TestCase):
         ({"license": {"key": "other_license"}}, "other_license"),
     ])
     def test_has_license(self, license, license_key):
+        """Test GithubOrgClient.has_license function"""
         result = GithubOrgClient.has_license(license, license_key)
         self.assertTrue(result)
 
