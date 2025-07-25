@@ -30,31 +30,35 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(result, test_payload)
         mock_get_json.reset_mock()
 
-    def test_public_repos_url(self, mock_org):
+    def test_public_repos_url(self):
         """Test the GithubOrgClient.public_repos_url method."""
-        payload = {"login": "google"}
-        with patch("client.GithubOrgClient.org") as mock_org:
+        payload = {"repos_url": "google"}
+        with patch.object(
+                GithubOrgClient,
+                "org",
+                new_callable=PropertyMock) as mock_org:
             mock_org.return_value = payload
             client = GithubOrgClient('google')
-            result = client._public_repos_url()
-            self.assertEqual(result, payload)
+            result = client._public_repos_url
+            self.assertEqual(result, payload['repos_url'])
 
     @patch("client.get_json")
     def test_public_repos(self, mock_get_json):
         """Test GithubOrgClient.public_repos method"""
-        payload = [{"name": "repo1"}, {"name": "repo2"}]
-        mock_get_json.return_value = payload
+        repos_payload = [{"name": "repo1"}, {"name": "repo2"}]
+        mock_get_json.return_value = repos_payload
 
-        name = "_public_repos_url"
         with patch.object(
                 GithubOrgClient,
-                name,
+                "_public_repos_url",
                 new_callable=PropertyMock) as mock_public_repos_url:
+
             client = GithubOrgClient("google")
-            mock_public_repos_url.return_value = "https"
+            expected_url = f"https://api.github.com/orgs/{client._org_name}"
+            mock_public_repos_url.return_value = expected_url
 
             result = client.public_repos()
 
-            self.assertEqual(result, payload)
-            mock_get_json.assert_called_once_with("https")
+            self.assertEqual(result, [repo['name'] for repo in repos_payload])
+            mock_get_json.assert_called_once_with(expected_url)
             mock_public_repos_url.assert_called_once()
