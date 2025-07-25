@@ -84,6 +84,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
     """Integration test for GithubOrgClient"""
     @classmethod
     def setUpClass(cls):
+        """Setup class to set up patcher and side effect"""
         cls.get_patcher = patch("requests.get")
         cls.mock_get = cls.get_patcher.start()
 
@@ -101,10 +102,11 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """teardown/cleanup class to stop patcher"""
         cls.get_patcher.stop()
 
     def test_public_repos(self):
-        """Test GithubOrgClient.public_repos method"""
+        """Test GithubOrgClient.public_repos method without patch"""
         client = GithubOrgClient("google")
 
         result = client.public_repos()
