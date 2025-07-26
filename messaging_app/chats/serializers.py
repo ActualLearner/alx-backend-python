@@ -11,6 +11,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['user_id', 'phone_number', 'email', 'password',
                   'first_name', 'last_name', 'role', 'created_at']
 
+    def validate(self, data):
+        # Dummy validation logic
+        if not data.get('email'):
+            raise serializers.ValidationError("Email is required.")
+        return data
+
 
 class MessageSerializer(serializers.ModelSerializer):
     sent_at = serializers.DateTimeField(read_only=True)
