@@ -40,7 +40,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, method=['post'])
+    @action(detail=True, methods=['post'])
     def send_message(self, request, pk=None):
         conversation = self.get_object()
         data = request.data.copy()
