@@ -15,7 +15,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
-    queryset = Message.objects.all()
+
+    def get_queryset(self):
+        queryset = Message.objects.all()
+        conversation_id = self.request.query_params.get('conversation_id')
+        if conversation_id:
+            queryset = queryset.filter(
+                conversation__conversation_id=conversation_id)
+        return queryset
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
