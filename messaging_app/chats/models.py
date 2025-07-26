@@ -31,16 +31,18 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
 
-class Message(models.Model):
-    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    sender_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='messages')
-    message_body = models.TextField(null=False)
-    sent_at = models.DateTimeField(auto_now_add=True)
-
-
 class Conversation(models.Model):
     conversation_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     participants_id = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='conversations')
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Message(models.Model):
+    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    sender_id = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='messages')
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name='messages')
+    message_body = models.TextField(null=False)
+    sent_at = models.DateTimeField(auto_now_add=True)
