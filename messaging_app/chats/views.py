@@ -20,7 +20,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         queryset = Message.objects.all()
         conversation_id = self.request.query_params.get('conversation_id')
         if conversation_id:
-            queryset = queryset.filter(
+            queryset = queryset.filters(
                 conversation__conversation_id=conversation_id)
         return queryset
 
