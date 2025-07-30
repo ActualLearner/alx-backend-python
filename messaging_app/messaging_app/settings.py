@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'chats',
     'rest_framework',
     'rest_framework_simplejwt',
-    'django-filters',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -133,7 +133,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'messaging_app.chats.auth.CustomJWTAuthentication',
+        'chats.auth.CustomJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
