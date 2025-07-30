@@ -45,10 +45,20 @@ class ConversationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsParticipantOfConversation]
 
     def get_queryset(self):
-        user_id = self.request.query_params.get('user_id')
-        if user_id:
-            return Conversation.objects.filter(participants__user_id=user_id)
-        return Conversation.objects.all()
+        """
+        This view is nested under a user, so we must filter conversations
+        based on the user_pk from the URL.
+        """
+        # self.kwargs contains the captured keyword arguments from the URL router.
+        user_pk = self.kwargs.get('user_pk')
+
+        if user_pk:
+            # Return only conversations where the user from the URL is a participant.
+            return Conversation.objects.filter(participants__user_id=user_pk)
+
+        # As a safe default for a nested viewset, return an empty queryset
+        # if the user_pk is not in the URL for some reason.
+        return Conversation.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -57,10 +67,11 @@ class ConversationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
-    def send_message(self, request, pk=None):
+    def send_message(self, request, pk=None, user_pk=None):
         conversation = self.get_object()
         data = request.data.copy()
-        data['conversation'] = conversation.conversation_id
+        data['conversation_id'] = conversation.conversation_id
+        data['sender_id'] = request.user.user_id
         serializer = MessageSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

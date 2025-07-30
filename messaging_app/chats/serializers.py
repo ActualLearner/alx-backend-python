@@ -49,7 +49,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ['conversation_id', 'participants_id',
+        fields = ['conversation_id', 'participants',
                   'created_at', 'messages']
 
     def get_messages(self, obj):
