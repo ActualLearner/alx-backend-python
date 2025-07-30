@@ -11,6 +11,7 @@ from .serializers import CustomTokenObtainPairSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .filters import MessageFilter
+from .pagination import MessagePagination
 
 
 # Create your views here.
@@ -33,7 +34,8 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsParticipantOfConversation]
     filter_backends = [DjangoFilterBackend]
-    filterset_class = MessageFilter  # 👈 Important!
+    filterset_class = MessageFilter
+    pagination_class = MessagePagination
 
     def destroy(self, request, *args, **kwargs):
         message = self.get_object()
