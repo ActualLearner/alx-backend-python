@@ -1,5 +1,29 @@
+from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import User, Message, Conversation
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = 'email'
+
+    def validate(self, attrs):
+        credentials = {
+            'email': attrs.get('email'),
+            'password': attrs.get('password')
+        }
+
+        user = authenticate(**credentials)
+
+        if user is None:
+            raise serializers.ValidationError('Invalid credentials')
+
+        refresh = self.get_token(user)
+
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -32,7 +56,8 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ['conversation_id', 'participants_id', 'created_at', 'messages']
+        fields = ['conversation_id', 'participants_id',
+                  'created_at', 'messages']
 
     def get_messages(self, obj):
         messages = obj.messages.all()
