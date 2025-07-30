@@ -1,29 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import User, Message, Conversation
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = 'email'
-
-    def validate(self, attrs):
-        credentials = {
-            'email': attrs.get('email'),
-            'password': attrs.get('password')
-        }
-
-        user = authenticate(**credentials)
-
-        if user is None:
-            raise serializers.ValidationError('Invalid credentials')
-
-        refresh = self.get_token(user)
-
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -34,6 +11,22 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['user_id', 'phone_number', 'email', 'password',
                   'first_name', 'last_name', 'role', 'created_at']
+
+    def create(self, validated_data):
+        """
+        Intercept the user creation process to properly handle the password.
+        """
+        # We manually call our model's manager, which gives us access
+        # to the create_user() method we defined.
+        user = User.objects.create_user(
+            email=validated_data['email'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            phone_number=validated_data.get('phone_number', ''),
+            # Pass the password to the method that knows how to hash it.
+            password=validated_data['password']
+        )
+        return user
 
     def validate(self, data):
         # Dummy validation logic

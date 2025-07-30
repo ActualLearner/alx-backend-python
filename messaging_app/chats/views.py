@@ -6,8 +6,6 @@ from .permissions import IsParticipantOfConversation
 from rest_framework.response import Response
 from .serializers import UserSerializer, MessageSerializer, ConversationSerializer
 from .models import User, Message, Conversation
-from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import CustomTokenObtainPairSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .filters import MessageFilter
@@ -15,8 +13,6 @@ from .pagination import MessagePagination
 
 
 # Create your views here.
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
 
 
 class RegisterView(generics.CreateAPIView):
