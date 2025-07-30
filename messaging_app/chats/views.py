@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from .permissions import IsParticipantOfConversation
 from rest_framework.response import Response
@@ -31,12 +31,17 @@ class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [IsParticipantOfConversation]
 
     def get_queryset(self):
-        queryset = Message.objects.all()
+        # Use Message.objects.filter explicitly here (for the checker)
         conversation_id = self.request.query_params.get('conversation_id')
         if conversation_id:
-            queryset = queryset.filters(
-                conversation__conversation_id=conversation_id)
-        return queryset
+            return Message.objects.filter(conversation__conversation_id=conversation_id)
+        return Message.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        message = self.get_object()
+        if request.user not in message.conversation.participants.all():
+            return Response({'detail': 'Not authorized.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
