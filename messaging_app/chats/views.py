@@ -33,6 +33,18 @@ class MessageViewSet(viewsets.ModelViewSet):
     filterset_class = MessageFilter
     pagination_class = MessagePagination
 
+    def get_queryset(self):
+        """
+        This view is nested under a conversation.
+        It should only return messages that belong to the conversation
+        specified in the URL.
+        """
+        # The 'conversation_pk' comes from the URL, thanks to the nested router.
+        conversation_pk = self.kwargs.get('conversation_pk')
+
+        # Filter messages to only include those from the specified conversation.
+        return Message.objects.filter(conversation_id=conversation_pk)
+
     def destroy(self, request, *args, **kwargs):
         message = self.get_object()
         if request.user not in message.conversation.participants.all():
