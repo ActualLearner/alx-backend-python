@@ -8,6 +8,9 @@ from .serializers import UserSerializer, MessageSerializer, ConversationSerializ
 from .models import User, Message, Conversation
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from .filters import MessageFilter
 
 
 # Create your views here.
@@ -29,13 +32,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsParticipantOfConversation]
-
-    def get_queryset(self):
-        # Use Message.objects.filter explicitly here (for the checker)
-        conversation_id = self.request.query_params.get('conversation_id')
-        if conversation_id:
-            return Message.objects.filter(conversation__conversation_id=conversation_id)
-        return Message.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MessageFilter  # 👈 Important!
 
     def destroy(self, request, *args, **kwargs):
         message = self.get_object()
