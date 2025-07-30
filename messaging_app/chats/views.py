@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
+from .permissions import IsParticipantOfConversation
 from rest_framework.response import Response
 from .serializers import UserSerializer, MessageSerializer, ConversationSerializer
 from .models import User, Message, Conversation
@@ -27,6 +28,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
+    permission_classes = [IsParticipantOfConversation]
 
     def get_queryset(self):
         queryset = Message.objects.all()
@@ -39,6 +41,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
 class ConversationViewSet(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
+    permission_classes = [IsParticipantOfConversation]
 
     def get_queryset(self):
         user_id = self.request.query_params.get('user_id')
