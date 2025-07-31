@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 import re
 
@@ -80,3 +80,16 @@ class OffensiveLanguageMiddleware:
         if x_forwarded_for:
             return x_forwarded_for.split(",")[0].strip()
         return request.META.get("REMOTE_ADDR")
+
+
+class RolepermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.message_log = {}  # IP: list of datetime objects
+
+    def __call__(self, request):
+        role = request.user.role
+        if role not in ['admin', 'host']:
+            return JsonResponse({'detail': 'Guest not allowed.'}, status=403)
+
+        return self.get_response(request)
