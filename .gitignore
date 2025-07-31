@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *.sqlite3
-*.log
+0x03-MessagingApp-Django/requests.log
 *.pot
 *.pyc
 *.pyo
