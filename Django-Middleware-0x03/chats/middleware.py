@@ -9,8 +9,7 @@ class RequestLoggingMiddleware:
 
         user = request.user if request.user.is_authenticated else "Anonymous"
         log_text = f"{datetime.now()} - User: {user} - Path: {request.path}\n"
-        print(log)
-        with open('../requests.log', 'a') as log:
+        with open('./requests.log', 'a') as log:
             log.write(log_text)
 
         response = self.get_response(request)
