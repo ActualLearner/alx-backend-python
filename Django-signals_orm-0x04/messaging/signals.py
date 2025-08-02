@@ -14,4 +14,5 @@ def create_notification(sender, instance, created, **kwargs):
 def log_edit(sender, instance, **kwargs):
     """Signal to track message editing, log old message"""
     instance.edited = True
-    MessageHistory.objects.create(message=instance, content=instance.content)
+    MessageHistory.objects.create(
+        message=instance, content=instance.content, edited_by=instance.user)
