@@ -1,14 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from .managers import UnreadMessagesManager
 User = get_user_model()
-
-
-class UnreadMessagesManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(read=False)
-
-    def unread_messages(self, user):
-        return self.get_queryset().filter(receiver=user).only('id', 'sender', 'timestamp', 'content')
 
 
 class Message(models.Model):
