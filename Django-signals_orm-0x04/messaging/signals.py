@@ -1,6 +1,6 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
-from .models import Message, MessageHistory, Notification
+from .models import Message, MessageHistory, Notification, User
 
 
 @receiver(post_save, sender=Message)
@@ -16,3 +16,11 @@ def log_edit(sender, instance, **kwargs):
     instance.edited = True
     MessageHistory.objects.create(
         message=instance, content=instance.content, edited_by=instance.user)
+
+
+@receiver(post_delete, sender=User)
+def delete_related(sender, instance, **kwargs):
+
+    instance.messages.delete()
+    instance.edited_messages.delete()
+    instance.notifications.delete()
