@@ -17,4 +17,3 @@ class Notification(models.Model):
         User, on_delete=models.CASCADE, related_name='notifications')
     message = models.ForeignKey(
         Messages, on_delete=models.CASCADE, related_name='notifications')
-    content = models.TextField()
