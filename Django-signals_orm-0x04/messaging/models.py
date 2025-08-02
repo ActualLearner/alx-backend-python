@@ -4,6 +4,7 @@ User = get_user_model()
 
 
 class Message(models.Model):
+    parent_message = models.ForeignKey(Message,on_delete=models.CASCADE, related_name='reply')
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(
