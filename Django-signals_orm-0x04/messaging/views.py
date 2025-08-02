@@ -20,3 +20,8 @@ def get_messages(self, request):
         "sent_messages": sent_messages,
         "received_messages": received_messages,
     }, status=200)
+    
+
+def get_unread_messages(self, request):
+    unread_messages = Message.unread.unread_messages(request.user)
+    return JsonResponse({"messages": unread_messages}, status=200)

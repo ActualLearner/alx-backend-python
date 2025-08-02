@@ -3,23 +3,38 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class UnreadMessagesManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(read=False)
+
+    def unread_messages(self, user):
+        return self.get_queryset().filter(receiver=user).only('id', 'sender', 'timestamp', 'content')
+
+
 class Message(models.Model):
-    parent_message = models.ForeignKey(Message,on_delete=models.CASCADE, related_name='reply')
+    parent_message = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='reply')
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='recieved_messages')
     content = models.TextField()
     edited = models.BooleanField(default=False)
+    read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    unread = UnreadMessagesManager()
 
 
 class MessageHistory(models.Model):
-    message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, related_name='message_history')
+    message = models.ForeignKey(
+        Message, on_delete=models.SET_NULL, null=True, related_name='message_history')
     content = models.TextField()
     edited_at = models.DateTimeField(auto_now_add=True)
-    edited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='edited_messages')
-    
+    edited_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='edited_messages')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         unique_together = (('message', 'timestamp'),)
 
