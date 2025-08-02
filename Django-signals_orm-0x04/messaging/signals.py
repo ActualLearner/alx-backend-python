@@ -7,4 +7,4 @@ from .models import Messages, Notifications
 def create_notification(sender, instance, created, **kwargs):
     if created:
         Notifications.objects.create(
-            user=instance.reciever, message=instance, content=f"New message from {instance.sender.username}")
+            user=instance.receiver, message=instance, content=f"New message from {instance.sender.username}")
