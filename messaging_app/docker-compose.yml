@@ -21,7 +21,8 @@ services:
   web:
     build: . # Build the image from the Dockerfile in the current directory
     container_name: django_web
-    command: sh -c /app/entrypoint.sh # Run our entrypoint script
+    command: python3 manage.py runserver
+    #command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app # Map the current directory on the host to /app in the container for live code changes
     ports:
