@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+
+kind: Deployment
+# This is metadata about the Deployment, like its name.
+metadata:
+  name: django-messaging-app-deployment
+# This is the specification for the Deployment, which describes the desired state.
+spec:
+  # The number of identical Pods to run.
+  replicas: 1
+  # The selector tells the Deployment which Pods to manage.
+  selector:
+    matchLabels:
+      app: django-messaging-app
+  # This is the template for the Pods that the Deployment will create.
+  template:
+    metadata:
+      # The labels on the Pods must match the selector's matchLabels.
+      labels:
+        app: django-messaging-app
+    # This is the specification for the containers that will run inside the Pod.
+    spec:
+      containers:
+      - name: messaging-app-container
+        # This is the Docker image to use.
+        # Make sure this matches the tag you used when you built the image.
+        image: messaging-app:latest
+        # This tells Kubernetes not to pull the image from a remote registry,
+        # but to use the local one (from Minikube's Docker environment).
+        imagePullPolicy: IfNotPresent
+        # The port your Django app runs on inside the container.
+        # The default for Django's development server is 8000.
+        ports:
+        - containerPort: 8000
+
+---
+
+
+# The API version for a Service.
+apiVersion: v1
+# The kind of resource is a Service.
+kind: Service
+# Metadata for the Service, like its name.
+metadata:
+  name: messaging-app-service
+# The specification for the Service.
+spec:
+  # This makes the Service only accessible from within the cluster. This is the default type.
+  type: ClusterIP
+  # This selector tells the Service which Pods to route traffic to.
+  # It must match the labels of the Pods defined in the Deployment.
+  selector:
+    app: django-messaging-app
+  # This defines the port mapping.
+  ports:
+  - protocol: TCP
+    # The port that the Service will expose.
+    port: 8000
+    # The port on the Pods that traffic should be sent to.
+    targetPort: 8000```
+
