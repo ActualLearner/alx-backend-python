@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-app-green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: django-messaging-app
+      version: green
+  template:
+    metadata:
+      labels:
+        app: django-messaging-app
+        version: green
+    spec:
+      containers:
+      - name: messaging-app-container
+        # In a real scenario, you would change this to your new image version
+        # e.g., image: messaging-app:v2
+        image: messaging-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
