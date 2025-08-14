@@ -57,5 +57,5 @@ spec:
     # The port that the Service will expose.
     port: 8000
     # The port on the Pods that traffic should be sent to.
-    targetPort: 8000```
+    targetPort: 8000
 
