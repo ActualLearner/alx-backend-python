@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# kubctl-0x01: A script to scale a deployment, verify it,
+# run a load test, and monitor resource usage.
+
+# --- Configuration ---
+# The name of the deployment you created in the previous step.
+DEPLOYMENT_NAME="django-messaging-app-deployment"
+# The name of the service for your app.
+SERVICE_NAME="messaging-app-service"
+# The desired number of replicas.
+REPLICA_COUNT=3
+# --- End Configuration ---
+
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+echo "### Script starting... ###"
+echo ""
+
+# --- Step 1: Pre-flight Checks ---
+echo "### Step 1: Checking for required tools (kubectl, wrk)..."
+if ! command_exists kubectl; then
+    echo "Error: kubectl is not installed or not in your PATH." >&2
+    exit 1
+fi
+if ! command_exists wrk; then
+    echo "Error: wrk is not installed. Please run 'sudo apt-get install wrk' (or equivalent for your OS)." >&2
+    exit 1
+fi
+echo "### Required tools found."
+echo ""
+
+# --- Step 2: Enable Metrics Server ---
+echo "### Step 2: Enabling the Minikube Metrics Server addon (for kubectl top)..."
+# This is idempotent; it won't do anything if already enabled.
+minikube addons enable metrics-server
+echo "### Metrics Server enabled."
+echo ""
+# Give the metrics server a moment to start up.
+echo "Waiting 30 seconds for the metrics server to collect initial data..."
+sleep 30
+
+# --- Step 3: Scale the Deployment ---
+echo "### Step 3: Scaling deployment '$DEPLOYMENT_NAME' to $REPLICA_COUNT replicas..."
+kubectl scale deployment "$DEPLOYMENT_NAME" --replicas=$REPLICA_COUNT
+echo ""
+
+# --- Step 4: Verify the Scaling ---
+echo "### Step 4: Verifying that $REPLICA_COUNT pods are running..."
+# We wait for a few seconds to allow the new pods to be created.
+sleep 5
+# Using a selector to only show the pods for our app.
+kubectl get pods -l app=django-messaging-app
+echo ""
+echo "### Verification complete. You should see $REPLICA_COUNT pods above."
+echo ""
+
+# --- Step 5: Perform Load Testing ---
+echo "### Step 5: Preparing for load testing..."
+echo "Getting external URL for service '$SERVICE_NAME'..."
+# The 'minikube service --url' command gets an accessible URL for our ClusterIP service.
+# The URL is only valid while the command is running in the background.
+APP_URL=$(minikube service "$SERVICE_NAME" --url)
+
+if [ -z "$APP_URL" ]; then
+    echo "Error: Could not get URL for service '$SERVICE_NAME'. Please check if the service is running." >&2
+    exit 1
+fi
+
+echo "### Service URL: $APP_URL"
+echo "### Starting load test with wrk for 30 seconds..."
+echo "### (4 threads, 100 connections)"
+
+wrk -t4 -c100 -d30s "$APP_URL"
+echo ""
+echo "### Load test finished."
+echo ""
+
+
+# --- Step 6: Monitor Resource Usage ---
+echo "### Step 6: Displaying resource usage for the app pods..."
+# Using 'kubectl top' to see CPU (in millicores) and Memory (in MiB) usage.
+# This reflects the usage during/after the load test.
+kubectl top pods -l app=django-messaging-app
+echo ""
+
+echo "### Script finished successfully! ###"
