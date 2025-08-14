@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# This script automates a blue-green deployment process.
+# It deploys both blue (current) and green (new) versions
+# and verifies the green deployment is ready before the final switch.
+
+echo "### Starting Blue-Green Deployment Process ###"
+
+# --- Step 1: Deploy the Blue (current) version ---
+echo -e "\n--> Applying blue_deployment.yaml..."
+kubectl apply -f blue_deployment.yaml
+
+# --- Step 2: Deploy the Green (new) version ---
+echo -e "\n--> Applying green_deployment.yaml..."
+kubectl apply -f green_deployment.yaml
+
+# --- Step 3: Deploy the Service (Router) ---
+# The service initially points to the blue deployment.
+echo -e "\n--> Applying kubeservice.yaml (routes to Blue)..."
+kubectl apply -f kubeservice.yaml
+
+# --- Step 4: Wait for Green deployment to be ready ---
+echo -e "\n--> Waiting for the Green deployment to complete its rollout..."
+kubectl rollout status deployment/django-app-green
+if [ $? -ne 0 ]; then
+    echo "Error: Green deployment failed to roll out." >&2
+    exit 1
+fi
+echo "### Green deployment is ready."
+
+# --- Step 5: Check logs of the new Green version for errors ---
+echo -e "\n--> Checking logs of a Green pod for verification..."
+# Get the name of one of the green pods.
+GREEN_POD_NAME=$(kubectl get pods -l app=django-messaging-app,version=green -o jsonpath='{.items[0].metadata.name}')
+if [ -z "$GREEN_POD_NAME" ]; then
+    echo "Error: Could not find any Green pods." >&2
+    exit 1
+fi
+# Display the last 10 lines of logs.
+kubectl logs "$GREEN_POD_NAME" --tail=10
+
+echo -e "\n### Verification Complete! ###"
+echo "Blue and Green deployments are running."
+echo "Service 'django-app-service' is currently routing traffic to BLUE."
+
+# --- MANUAL ACTION REQUIRED TO COMPLETE THE SWITCH ---
+echo -e "\n--> TO SWITCH TRAFFIC TO GREEN, run the following command:"
+echo "kubectl patch service django-app-service -p '{\"spec\":{\"selector\":{\"version\":\"green\"}}}'"
+
+# --- To rollback to blue, run: ---
+echo -e "\n--> To ROLLBACK TRAFFIC TO BLUE, run the following command:"
+echo "kubectl patch service django-app-service -p '{\"spec\":{\"selector\":{\"version\":\"blue\"}}}'"
