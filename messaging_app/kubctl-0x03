@@ -1,0 +1,48 @@
+#!/bin/bash
+
+DEPLOYMENT_NAME="django-app-blue"
+SERVICE_NAME="django-app-service"
+
+echo "### Starting Rolling Update Test ###"
+
+# --- Step 1: Get the URL to test ---
+# We use the existing service which routes to the blue deployment.
+echo -e "\n--> Getting service URL for continuous testing..."
+APP_URL=$(minikube service "$SERVICE_NAME" --url)
+
+if [ -z "$APP_URL" ]; then
+    echo "Error: Could not get URL for service '$SERVICE_NAME'." >&2
+    exit 1
+fi
+echo "### Test URL is: $APP_URL"
+
+# --- Step 2: Start continuous testing in the background ---
+echo -e "\n--> Starting continuous curl test in the background..."
+# This loop will run until we kill it later. It prints the HTTP status code for each request.
+while true; do
+    curl -s -o /dev/null -w "%{http_code}\n" "$APP_URL"
+    sleep 0.5
+done &
+CURL_PID=$! # Save the Process ID of the background loop
+
+# --- Step 3: Apply the updated deployment to trigger the update ---
+echo -e "\n--> Applying updated blue_deployment.yaml to trigger rolling update."
+echo "Watch the curl output. It should consistently show '200'."
+kubectl apply -f blue_deployment.yaml
+
+# --- Step 4: Monitor the rolling update status ---
+# This command will wait until the rollout is complete.
+echo -e "\n--> Monitoring rollout status..."
+kubectl rollout status deployment/"$DEPLOYMENT_NAME"
+
+# --- Step 5: Stop the continuous test ---
+echo -e "\n--> Rollout complete. Stopping the curl test."
+kill $CURL_PID
+
+# --- Step 6: Verify the final state ---
+echo -e "\n--> Verifying the new pods and their image versions..."
+kubectl get pods -l app=django-messaging-app,version=blue
+
+echo -e "\n--> Confirming the container image version:"
+# This command checks the image tag of every container in the matching pods.
+kubectl get pods -l app=django-messaging-app,version=blue 
