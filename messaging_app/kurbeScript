@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# A script to start a local Kubernetes cluster with minikube,
+# verify its status, and list the available pods.
+
+# --- Script Start ---
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Step 1: Ensure minikube is installed
+echo "### Step 1: Checking for minikube..."
+if ! command_exists minikube; then
+    echo "Error: minikube is not installed or not in your PATH." >&2
+    echo "Please install it before running this script." >&2
+    exit 1
+fi
+echo "### minikube found."
+echo ""
+
+# Step 2: Start a Kubernetes cluster
+echo "### Step 2: Starting minikube cluster..."
+# The 'minikube status' command checks if a cluster is already running.
+# We use 'grep -q "Running"' to see if the output contains the word "Running".
+# The '||' means "or", so if the status command fails or doesn't say "Running",
+# it will execute 'minikube start'.
+minikube status | grep -q "Running" || minikube start
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to start the minikube cluster." >&2
+    exit 1
+fi
+echo "### minikube cluster is running."
+echo ""
+
+# Step 3: Verify the cluster is running using kubectl
+echo "### Step 3: Verifying cluster information..."
+kubectl cluster-info
+if [ $? -ne 0 ]; then
+    echo "Error: kubectl could not get cluster info. The cluster might not be ready." >&2
+    exit 1
+fi
+echo ""
+
+# Step 4: Retrieve the available pods
+echo "### Step 4: Retrieving available pods..."
+# We use '-A' to get pods from all namespaces.
+kubectl get pods -A
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to retrieve pods." >&2
+    exit 1
+fi
+echo ""
+
+echo "### Script finished successfully! ###"
+
+# --- Script End ---
