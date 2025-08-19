@@ -1,30 +1,38 @@
 pipeline {
-    agent any  // run on any available Jenkins agent
+    agent any
+
+    environment {
+        GIT_CREDENTIALS = 'your-credentials-id' // Jenkins stored credentials ID
+        GIT_BRANCH = 'main'                      // Git branch to checkout
+    }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/ActualLearner/alx-backend-python.git'
+                // Pull code from GitHub with credentials and branch
+                git branch: "${GIT_BRANCH}",
+                    credentialsId: "${GIT_CREDENTIALS}",
+                    url: 'https://github.com/your-username/messaging_app.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                // Install Python dependencies
-                sh 'python3 -m venv venv'      // optional virtual environment
+                // Install dependencies using pip3 from messaging_app/requirements.txt
+                sh 'python3 -m venv venv'                                  // optional virtual environment
                 sh '. venv/bin/activate && pip install --upgrade pip'
-                sh '. venv/bin/activate && pip install -r requirements.txt'
+                sh '. venv/bin/activate && pip install -r messaging_app/requirements.txt'
             }
         }
 
         stage('Run Tests') {
             steps {
-                // Run pytest and generate a report in JUnit XML format
+                // Run pytest and generate XML report
                 sh '. venv/bin/activate && pytest --junitxml=reports/test-results.xml'
             }
             post {
                 always {
-                    // Archive test results so Jenkins can display them
+                    // Archive test results
                     junit 'reports/test-results.xml'
                 }
             }
