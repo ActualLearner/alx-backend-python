@@ -1,0 +1,53 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword  # Set a password for the root user.
+          MYSQL_DATABASE: test_db          # Create an initial database named "test_db".
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' # Match the Python version from your Dockerfile.
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Assuming your requirements.txt is in the messaging_app directory.
+        pip install -r messaging_app/requirements.txt
+
+    - name: Run Tests
+        # Run the Django tests using pytest.
+        # The tests will use the database settings configured in your settings.py file.
+        pytest messaging_app/
+      env:
+        # These environment variables will be available to the `run` command.
+        # They MUST match the service configuration above and your Django settings.
+        DB_NAME: test_db
+        DB_USER: root
+        DB_PASSWORD: rootpassword
+        DB_HOST: 127.0.0.1 # The service is mapped to localhost on the runner.
+        DB_PORT: 3306
