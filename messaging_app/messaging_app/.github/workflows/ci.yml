@@ -1,4 +1,4 @@
-name: Django CI
+name: Django CI and Code Quality
 
 on:
   push:
@@ -14,8 +14,8 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: rootpassword  # Set a password for the root user.
-          MYSQL_DATABASE: test_db          # Create an initial database named "test_db".
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: test_db
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
@@ -28,26 +28,45 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: Set up Python 3.10
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10' # Match the Python version from your Dockerfile.
+        python-version: '3.10'
 
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        # Assuming your requirements.txt is in the messaging_app directory.
+        # Add flake8 and pytest-cov for linting and coverage
+        pip install flake8 pytest-cov
         pip install -r messaging_app/requirements.txt
 
-    - name: Run Tests
-        # Run the Django tests using pytest.
-        # The tests will use the database settings configured in your settings.py file.
-        pytest messaging_app/
+    # --- NEW STEP: LINTING WITH FLAKE8 ---
+    - name: Lint with Flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 messaging_app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 messaging_app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run Tests and Generate Coverage
+      run: |
+        export DJANGO_SETTINGS_MODULE=messaging_app.settings
+        # Run pytest with the coverage flag
+        # --cov=./messaging_app tells it which app to measure
+        # --cov-report=xml generates an XML file for the artifact upload
+        pytest --cov=./messaging_app --cov-report=xml messaging_app/
       env:
-        # These environment variables will be available to the `run` command.
-        # They MUST match the service configuration above and your Django settings.
         DB_NAME: test_db
         DB_USER: root
         DB_PASSWORD: rootpassword
-        DB_HOST: 127.0.0.1 # The service is mapped to localhost on the runner.
+        DB_HOST: 127.0.0.1
         DB_PORT: 3306
+
+    # --- NEW STEP: UPLOAD COVERAGE REPORT ---
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
+      with:
+        # The name of the artifact as it will appear in the GitHub UI.
+        name: coverage-report
+        # The path to the file(s) to upload. In this case, the XML report generated in the previous step.
+        path: coverage.xml
